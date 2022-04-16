@@ -6,10 +6,10 @@
 #include <time.h>
 #include "AutoTrack.h"
 
-#define MAX_LIMIT 20
+
 
 int main(void) {
-    Vehicle currentVehicle;
+    Vehicle currentVehicle;                                             //Current working vehicle
     welcome();
     
     while (1) {
@@ -21,10 +21,12 @@ int main(void) {
                 listVehicle();
                 selection = getMenuOption();
                 currentVehicle = selectVehicle(selection);
-                printf("You have selected the %i %s %s\n\n", currentVehicle.year, currentVehicle.make, currentVehicle.model);
-                vehicleOptions();
-                selection = getMenuOption();
-                switch(selection) {
+                while(1) {
+                    printf("Vehicle options for %i %s %s\n\n", currentVehicle.year, currentVehicle.make, currentVehicle.model);
+                    vehicleOptions();
+                    selection = getMenuOption();
+                    
+                    switch(selection) {
                     case 1:
                         printf("Viewing Vehicle information.\n\n");
                         vehicleInformation(&currentVehicle);
@@ -35,7 +37,7 @@ int main(void) {
                     case 3:
                         printf("Updating Mileage\n\n");
                         updateMileage(&currentVehicle);
-                        break;
+                        continue;
                     case 4:
                         printf("View Maintenance Schedule\n\n");
                         viewMaintSched(&currentVehicle);
@@ -53,8 +55,9 @@ int main(void) {
                     default:
                         printf("Invalid selection\n\n");
                         break;
+                    }
                 }
-                break;
+                
             case 2:
                 buildVehicle();
                 break;
@@ -64,9 +67,12 @@ int main(void) {
                 selection = getMenuOption();
                 deleteVehicle(selection);
                 break;
-             case 4:
+            case 4:
                 printf("Goodbye!\n\n");
                 exit(0);
+            default:
+                printf("Invalid Option");
+                exit(1);
         }
     }
 
@@ -86,11 +92,12 @@ void mainMenu() {
 }
 
 int getMenuOption() {
-    int select;
+    int select;                                                         //function gets input from menu options
     scanf("%i", &select);
     printf("\n");
     return select;
 }
+
 
 void buildVehicle() {
     for (int i = 0; i < 999; i++) {
@@ -99,16 +106,16 @@ void buildVehicle() {
         sprintf(index, "%d", i);
         strcpy(name, "vehicle");
         strcat(name, index);
-        if (access(name, F_OK) == 0) {
+        if (access(name, F_OK) == 0) {                              //if file exists, skip an and create incremented file
             continue;
         } else {
-            FILE *outfile = fopen(name, "w");
+            FILE *outfile = fopen(name, "w");                       //setup write stream 
             if (outfile == NULL) {
                 fprintf(stderr, "Error opening file\n");
                 exit(1);
             }
             
-            Vehicle vehicle;
+            Vehicle vehicle;                                            //build the vehicle 
             strcpy(vehicle.ident, name);
             printf("Vehicle Year: ");
             int year;
@@ -130,14 +137,14 @@ void buildVehicle() {
             scanf("%i", &mileage);
             vehicle.mileage = mileage;
 
-            for (int i = 0; i < 99; i++) {
+            for (int i = 0; i < 99; i++) {                                 //initialize all tasks in task array to 0 or empty string
                 vehicle.task[i].exists = false;
                 strcpy(vehicle.task[i].job, "");
                 vehicle.task[i].interval = 0;
                 vehicle.task[i].lastDone = 0;
             }
 
-            fwrite(&vehicle, sizeof(vehicle), 1, outfile);
+            fwrite(&vehicle, sizeof(vehicle), 1, outfile);                  //save the vehicle to storage
             fclose(outfile);
             break;
         }
@@ -147,7 +154,7 @@ void buildVehicle() {
 void listVehicle(){
     for (int i = 0; i < 999; i++) {
         char name[20];
-        char index[30];
+        char index[3];
         strcpy(name, "vehicle");
         sprintf(index, "%d", i);
         strcat(name, index);
@@ -158,11 +165,13 @@ void listVehicle(){
                 fprintf(stderr, "\nError loading vehicle.\n");
                 return;
             }
-            while(fread(&vehicle, sizeof(vehicle), 1, infile));
+            while(fread(&vehicle, sizeof(vehicle), 1, infile));                             //list available vehicles 
             fclose(infile);
             printf("%i. %i %s %s\n", i, vehicle.year, vehicle.make, vehicle.model);
+            
         } 
     }
+    
     printf("\n");
 }
 
@@ -172,7 +181,7 @@ void deleteVehicle(int selection) {
     strcpy(name, "vehicle");
     sprintf(index, "%d", selection);
     strcat(name, index);
-    remove(name);
+    remove(name);                                                                   //delete vehicle
 }
 
 Vehicle selectVehicle(int selection) {
@@ -183,7 +192,7 @@ Vehicle selectVehicle(int selection) {
     sprintf(index, "%d", selection);
     strcat(name, index);
 
-    FILE* infile = fopen(name, "r");
+    FILE* infile = fopen(name, "r");                                                //load and return the selected vehicle
     if (infile == NULL) {
         fprintf(stderr, "Error Loading Vehicle.\n");
         exit(1);
@@ -224,45 +233,65 @@ void vehicleInformation(Vehicle* vehicle) {
     printf("Model:                              %s\n", vehicle->model);
     printf("Year                                %i\n", vehicle->year);
     printf("Odometer Reading:                   %i\n", vehicle->mileage);
-    printf("VIN number:                         ####\n");
-    printf("\nNext maintenance item due:        ##########\n");
+    printf("VIN number:                         ####\n");                                       //future development
+    printf("\nNext maintenance item due:        ##########\n");                                 
     printf("\n");
 }
 
 void addTask(Vehicle *vehicle) {
-    char job[30];
+    Vehicle tempVehicle = *vehicle;
+    char taskName[30];
     int interval;
     int lastDone;
     int n = 0;
-    Maintenance newTask;
 
     for (int i = 0; i < 99; i++) {
-        if (vehicle->task[i].exists == true) {
+        if (tempVehicle.task[i].exists == true) {
             n++;
-        } 
+        }
     }
-   
+    
     printf("Task Name: ");
     getchar();
-    fgets(job, 30, stdin);
-    strcpy(newTask.job, job);
-    printf("Interval: ");
-    scanf("%i", &interval);
-    newTask.interval = interval;
-    printf("Last Completed: ");
-    scanf("%i", &lastDone);
-    newTask.lastDone = lastDone;
+    fgets(taskName, 30, stdin);
+    strcpy(tempVehicle.task[n].job, taskName);
 
-    vehicle->task[n] = newTask;
+    printf("Interval (km): ");
+    scanf("%i", &interval);
+    tempVehicle.task[n].interval = interval;
+
+    printf("Last Done(km): ");
+    scanf("%i", &lastDone);
+    tempVehicle.task[n].lastDone = lastDone;
+
+    tempVehicle.task[n].exists = true;
 
     FILE* outfile = fopen(vehicle->ident, "w");
     if (outfile == NULL) {
         fprintf(stderr, "Error\n");
+        exit(1);
     }
-    fwrite(vehicle, sizeof(vehicle), 1, outfile);
+    fwrite(&tempVehicle, sizeof(tempVehicle), 1, outfile);
     fclose(outfile);
 }
 
 void viewMaintSched(Vehicle* vehicle) {
-    printf("%i %s %s\n\n", vehicle->year, vehicle->make, vehicle->model);
+    Vehicle tempVehicle = *vehicle;
+    FILE* infile = fopen(vehicle->ident, "r");
+    if (infile == NULL) {
+        fprintf(stderr, "Error\n");
+        exit(1);
+    }
+    while(fread(&tempVehicle, sizeof(tempVehicle), 1, infile));
+    fclose(infile);
+    
+    printf("Maintenance Schedule for %i %s %s\n\n", tempVehicle.year, tempVehicle.make, tempVehicle.model);
+    printf("Task                                Interval\n");
+    printf("---------------------------------------------\n");
+    for (int i = 0; i < 99; i++) {
+        if (vehicle->task[i].exists == true) {
+            printf("%s                           %i\n", vehicle->task[i].job, vehicle->task[i].interval);
+        }    
+    }
+    printf("\n\n");
 }
