@@ -30,8 +30,9 @@ typedef struct {
 
 void welcome();
 void initializeGarage(Vehicle* currentVehicle);
+int getNumVehicles();
 void mainMenu();
-int getMenuOption();
+int getMenuOption(int max);
 void listVehicle();
 void buildVehicle();
 Vehicle selectVehicle(int selection);

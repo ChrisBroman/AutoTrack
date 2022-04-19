@@ -9,18 +9,20 @@
 int main(void) {
     Vehicle garage[99] = {0};
     int select_vehicle;
+    int numVehicles;
     initializeGarage(garage);
     welcome();
     while(1) {
         mainMenu();
-        int selection = getMenuOption();
+        numVehicles = getNumVehicles() - 1;
+        int selection = getMenuOption(4);
         switch (selection) {
             case 1:
                 listVehicle();
-                select_vehicle = getMenuOption();
+                select_vehicle = getMenuOption(numVehicles);
                 currentOption(select_vehicle);
                 vehicleOptions();
-                int select = getMenuOption();
+                int select = getMenuOption(9);
                 switch (select) {
                     case 1:
                         vehicleInformation(select_vehicle);
@@ -56,7 +58,7 @@ int main(void) {
             case 3:
                 printf("Select a vehicle to delete: \n\n");
                 listVehicle();
-                select_vehicle = getMenuOption();
+                select_vehicle = getMenuOption(numVehicles);
                 deleteVehicle(select_vehicle);
                 break;
             case 4:
@@ -64,8 +66,6 @@ int main(void) {
                 exit(0);
         }
     }
-
-
     return 0;
 }
 
@@ -81,6 +81,23 @@ void initializeGarage(Vehicle* vehicle) {
     }
 }
 
+int getNumVehicles() {
+    int number = 0;
+    Vehicle loadedVehicles[99];
+
+    FILE* infile = fopen("garage.dat", "r");
+    if (infile == NULL) exit(1);
+    while(fread(loadedVehicles, sizeof(loadedVehicles), 1, infile));
+    fclose(infile);
+
+    for (int i = 0; i < 99; i++) {
+        if (loadedVehicles[i].exists == true) {
+            number++;
+        }
+    }
+    return number;
+}
+
 void welcome() {
     system("clear");
     printf("Welcome to AutoTrack, vehicle maintenance tracking software\n");
@@ -94,12 +111,20 @@ void mainMenu() {
     printf("3. Delete Vehicle                       4. Exit Program\n\n");
 }
 
-int getMenuOption() {
+int getMenuOption(int max) {
     printf("\n>> ");
     int select;                                                         //function gets input from menu options
-    scanf("%i", &select);
+    int num;
+    char term;
+    char errorMsg[64] = "Invalid option. Please enter a valid selection.";
+    if (scanf("%d%c", &num, &term) != 2 || term != '\n') {
+        printf("%s", errorMsg);
+        exit(1);
+    } else {
+        select = num;
+    }
     printf("\n");
-    return select;
+    return select;   
 }
 
 void currentOption(int select) {
@@ -220,7 +245,7 @@ void vehicleOptions() {
     printf("3. Update Mileage                           4. View Maintenance Schedule\n");
     printf("5. View Maintenance Log                     6. Add Maintenance Task\n");
     printf("7. Complete Maintenance Task                8. Remove Maintenance Task\n");
-    printf("8. Main Menu\n\n");
+    printf("9. Main Menu\n\n");
 }
 
 void vehicleInformation(int select) {
