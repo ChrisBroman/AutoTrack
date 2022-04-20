@@ -4,7 +4,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <ctype.h>
 #include "AutoTrack.h"
+
+#define BUFFER_SIZE 64
 
 int main(void) {
     Vehicle garage[99] = {0};
@@ -81,6 +84,35 @@ void initializeGarage(Vehicle* vehicle) {
     }
 }
 
+bool parse_int(char *string, int *integer) {
+    int i = 0;
+    while (isspace(string[i])) i++;
+    int length = strlen(string);
+    if (i == length) return false;
+    char integer_buffer[BUFFER_SIZE];
+    int integer_chars = 0;
+
+    if (string[i] == '-') {
+        integer_buffer[integer_chars] = '-';
+        integer_chars++;
+        i++;
+        if (!isdigit(string[i])) return false;
+    }
+
+    while(i < length && !isspace(string[i])) {
+        if (!isdigit(string[i])) return false;
+        integer_buffer[integer_chars] = string[i];
+        integer_chars++;
+        i++;
+    }
+    
+    integer_buffer[integer_chars] = '\0';
+    while (isspace(string[i])) i++;
+    if (string[i] != '\0') return false;
+    *integer = atoi(integer_buffer);
+    return true;
+}
+
 int getNumVehicles() {
     int number = 0;
     Vehicle loadedVehicles[99];
@@ -112,19 +144,18 @@ void mainMenu() {
 }
 
 int getMenuOption(int max) {
-    printf("\n>> ");
-    int select;                                                         //function gets input from menu options
-    int num;
-    char term;
-    char errorMsg[64] = "Invalid option. Please enter a valid selection.";
-    if (scanf("%d%c", &num, &term) != 2 || term != '\n') {
-        printf("%s", errorMsg);
-        exit(1);
-    } else {
-        select = num;
-    }
-    printf("\n");
-    return select;   
+    int integer = 0;
+    bool parsed_correct = true;
+    do {
+        printf("\n>> ");
+        char buffer[BUFFER_SIZE];
+        fgets(buffer, BUFFER_SIZE, stdin);
+        parsed_correct = parse_int(buffer, &integer);
+        printf("\n\nPlease select from the available options.\n\n");
+
+         
+    } while (!parsed_correct || integer > max);
+    return integer;   
 }
 
 void currentOption(int select) {
@@ -148,6 +179,7 @@ void listVehicle() {
     if (infile == NULL) exit(1);    
     while(fread(vehicle, sizeof(vehicle), 1, infile));
     fclose(infile);
+    printf("\n");
     for (int i = 0; i < 99; i++) {
         if (vehicle[i].exists == true) {
             printf("%i. %i %s %s\n", i, vehicle[i].year, vehicle[i].make, vehicle[i].model);

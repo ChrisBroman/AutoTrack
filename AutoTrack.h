@@ -30,6 +30,7 @@ typedef struct {
 
 void welcome();
 void initializeGarage(Vehicle* currentVehicle);
+bool parse_int(char *string, int *integer);
 int getNumVehicles();
 void mainMenu();
 int getMenuOption(int max);
