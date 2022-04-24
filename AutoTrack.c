@@ -13,21 +13,29 @@ int main(void) {
     Vehicle garage[99] = {0};
     int select_vehicle;
     int numVehicles;
+    int numVehiclesSelect;
     initializeGarage(garage);
     welcome();
+
+    numVehicles = getNumVehicles();
+    if (numVehicles == 0) {
+        printf("No vehicles detected in system. Please add a vehicle to start.\n\n");
+        buildVehicle();
+    }
+
     while(1) {
         mainMenu();
-        numVehicles = getNumVehicles() - 1;
+        numVehiclesSelect = getNumVehicles() - 1;
         int selection = getMenuOption(4);
         switch (selection) {
             case 1:
                 listVehicle();
-                select_vehicle = getMenuOption(numVehicles);
+                select_vehicle = getMenuOption(numVehiclesSelect);
                 currentOption(select_vehicle);
                 vehicleOptions();
                 int select = getMenuOption(9);
                 switch (select) {
-                    case 1:
+                    case 1:                       
                         vehicleInformation(select_vehicle);
                         break;
                     case 2:
@@ -169,28 +177,31 @@ void currentOption(int select) {
     fclose(infile);
 
 
-    printf("Please select an option for %i %s %s: \n\n", loadedVehicle[select].year, loadedVehicle[select].make, loadedVehicle[select].model);
+    printf("%i %s %s: \n\n", loadedVehicle[select].year, loadedVehicle[select].make, loadedVehicle[select].model);
 
 }
 
 void listVehicle() {
     Vehicle vehicle[99];
+    
     FILE* infile = fopen("garage.dat", "r");
     if (infile == NULL) exit(1);    
     while(fread(vehicle, sizeof(vehicle), 1, infile));
     fclose(infile);
+
     printf("\n");
     for (int i = 0; i < 99; i++) {
         if (vehicle[i].exists == true) {
             printf("%i. %i %s %s\n", i, vehicle[i].year, vehicle[i].make, vehicle[i].model);
         }      
     }
+
     printf("\n");
 
 }
 
 void buildVehicle() {
-    system("clear");
+    
     Vehicle newVehicle = {0};
     Vehicle loadedVehicle[99];
     
@@ -275,6 +286,7 @@ Vehicle selectVehicle(int selection) {
     system("clear");
     Vehicle loadedVehicle[99];
     Vehicle selectedVehicle = {0};
+    
 
     FILE* infile = fopen("garage.dat", "r");
     if (infile == NULL) {
@@ -285,6 +297,7 @@ Vehicle selectVehicle(int selection) {
     fclose(infile);
 
     selectedVehicle = loadedVehicle[selection];
+
     return selectedVehicle;
 }
 
@@ -364,7 +377,7 @@ void updateMileage(int select) {
     printf("Please enter the current odometer reading: ");
     int mileage;
     bool parsed_correct = true;
-    getchar();
+    fseek(stdin, 0, SEEK_SET);
     do {
         char mileageBuffer[64];
         fgets(mileageBuffer, 64, stdin);
@@ -417,12 +430,13 @@ void addTask(int select) {
 
     printf("Task Name: ");
     char job[20];
+    fseek(stdin, 0, SEEK_SET);
     fgets(job, 20, stdin);
     
     printf("Interval (km): ");
     int interval;
     bool parsedCorrect = true;
-    getchar();
+    fseek(stdin, 0, SEEK_SET);
     do {
         char intervalBuffer[64];
         fgets(intervalBuffer, 64, stdin);
@@ -435,6 +449,7 @@ void addTask(int select) {
     printf("Last Completed (km): ");
     int lastDone;
     parsedCorrect = true;
+    fseek(stdin, 0, SEEK_SET);
     do {
         char lastDoneBuffer[64];
         fgets(lastDoneBuffer, 64, stdin);
