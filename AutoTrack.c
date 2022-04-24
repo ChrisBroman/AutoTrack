@@ -32,35 +32,40 @@ int main(void) {
                 listVehicle();
                 select_vehicle = getMenuOption(numVehiclesSelect);
                 currentOption(select_vehicle);
-                vehicleOptions();
-                int select = getMenuOption(9);
-                switch (select) {
-                    case 1:                       
-                        vehicleInformation(select_vehicle);
-                        break;
-                    case 2:
-                        upcomingMaint(select_vehicle);
-                        break;
-                    case 3:
-                        updateMileage(select_vehicle);
-                        break;
-                    case 4:
-                        viewSchedule(select_vehicle);
-                        break;
-                    case 5:
-                        maintenanceLog(select_vehicle);
-                        break;
-                    case 6:
-                        addTask(select_vehicle);
-                        break;
-                    case 7:
-                        completeMaintenance(select_vehicle);
-                        break;
-                    case 8:
-                        removeTask(select_vehicle);
-                        break;
-                    default:
-                        break;
+                bool flag = true;
+                while (flag == true) {
+                    vehicleOptions();
+                    int select = getMenuOption(9);
+                    switch (select) {
+                        case 1:                       
+                            vehicleInformation(select_vehicle);
+                            break;
+                        case 2:
+                            upcomingMaint(select_vehicle);
+                            break;
+                        case 3:
+                            updateMileage(select_vehicle);
+                            break;
+                        case 4:
+                            viewSchedule(select_vehicle);
+                            break;
+                        case 5:
+                            maintenanceLog(select_vehicle);
+                            break;
+                        case 6:
+                            addTask(select_vehicle);
+                            break;
+                        case 7:
+                            completeMaintenance(select_vehicle);
+                            break;
+                        case 8:
+                            removeTask(select_vehicle);
+                            break;
+                        case 9:
+                            flag = false;
+                        default:
+                            break;
+                    }
                 }                 
                 break;
             case 2:
@@ -145,7 +150,7 @@ void welcome() {
 }
 
 void mainMenu() {
-    printf("***************************  Main Menu  *************************************\n");
+    printf("***************************  Main Menu  *************************************\n\n");
     printf("Please select from the following list of options: \n\n");
     printf("1. Select Vehicle                       2. Create New Vehicle Profile\n");
     printf("3. Delete Vehicle                       4. Exit Program\n\n");
@@ -159,9 +164,7 @@ int getMenuOption(int max) {
         char buffer[BUFFER_SIZE];
         fgets(buffer, BUFFER_SIZE, stdin);
         parsed_correct = parse_int(buffer, &integer);
-        printf("\n\nPlease select from the available options.\n\n");
-
-         
+                 
     } while (!parsed_correct || integer > max);
     return integer;   
 }
@@ -177,7 +180,7 @@ void currentOption(int select) {
     fclose(infile);
 
 
-    printf("%i %s %s: \n\n", loadedVehicle[select].year, loadedVehicle[select].make, loadedVehicle[select].model);
+    printf("\n\n%i %s %s: \n\n", loadedVehicle[select].year, loadedVehicle[select].make, loadedVehicle[select].model);
 
 }
 
