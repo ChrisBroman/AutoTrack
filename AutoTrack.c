@@ -258,6 +258,7 @@ void buildVehicle() {
         snprintf(newVehicle.log[i].task, sizeof(newVehicle.log[i].task), "%s", "");
     }
 
+    printf("\n\n\n");
 
     FILE* infile = fopen("garage.dat", "r");
     if (infile == NULL) {
@@ -377,6 +378,8 @@ void updateMileage(int select) {
 
     updateVehicle = loadedVehicle[select];
 
+    printf("***************** Update Mileage ***********************\n\n");
+    printf("%i %s %s\n\n", updateVehicle.year, updateVehicle.make, updateVehicle.model);
     printf("Please enter the current odometer reading: ");
     int mileage;
     bool parsed_correct = true;
@@ -500,7 +503,9 @@ void viewSchedule(int select) {
     fclose(infile);
 
     vehicle = loadedVehicle[select];
-    printf("Maintenance Schedule for %i %s %s\n\n", vehicle.year, vehicle.make, vehicle.model);
+    
+    printf("***************** Maintenance Schedule **********************\n\n");
+    printf("%i %s %s\n\n", vehicle.year, vehicle.make, vehicle.model);
     printf("Task Name\t\tInterval\tLast Completed\n");
     printf("------------------------------------------------------\n");
     for (int i = 0; i < 99; i++) {
@@ -548,7 +553,8 @@ void upcomingMaint(int select) {
     
     qsort(array, num, sizeof(int), compare);
 
-    printf("\nUpcoming Maintenance for %i %s %s\n", vehicle.year, vehicle.make, vehicle.model);
+    printf("***************** Upcoming Maintenance ********************\n\n");
+    printf("%i %s %s\n\n", vehicle.year, vehicle.make, vehicle.model);
     printf("\nTask                  Next Due            Mileage Remaining\n");
     printf("-----------------------------------------------------------\n");
     for (int i = 0; i < num; i++) {
@@ -570,12 +576,25 @@ void removeTask(int select) {
     Vehicle vehicle;
     int num = 0;
     int selection;
+    int numTasks = 0;
+
     FILE* infile = fopen("garage.dat", "r");
     if (infile == NULL) exit(1);
     while(fread(loadedVehicle, sizeof(loadedVehicle), 1, infile));
     fclose(infile);
 
     vehicle = loadedVehicle[select];
+
+    for (int i = 0; i < 99; i++) {
+        if (vehicle.schedule[i].exists == true) {
+            numTasks++;
+        }
+    }
+
+    if (numTasks == 0) {
+        printf("\n\nNo tasks to remove.\n\n");
+        return;
+    }
 
     printf("Select which task to remove from the schedule: \n\n");
     for (int i = 0; i < 99; i++) {
@@ -609,7 +628,8 @@ void removeTask(int select) {
 void completeMaintenance(int select) {
     system("clear");
     Vehicle loadedVehicle[99];
-    Vehicle vehicle;    
+    Vehicle vehicle;
+    int numTasks = 0;    
 
     FILE* infile = fopen("garage.dat", "r");
     if (infile == NULL) exit(1);
@@ -617,6 +637,17 @@ void completeMaintenance(int select) {
     fclose(infile);
 
     vehicle = loadedVehicle[select];
+
+    for (int i = 0; i < 99; i++) {
+        if (vehicle.schedule[i].exists == true) {
+            numTasks++;
+        }
+    }
+
+    if (numTasks == 0) {
+        printf("\n\nNo tasks to complete.  Please add task from the vehicle options menu.\n\n");
+        return;
+    }
 
     printf("Select which task has been completed: \n\n");
 
@@ -715,7 +746,8 @@ void maintenanceLog(int select) {
 
     vehicle = loadedVehicle[select];
 
-    printf("Maintenance Logs for %i %s %s\n\n", vehicle.year, vehicle.make, vehicle.model);
+    printf("***************** Maintenance Logs **********************\n\n");
+    printf("%i %s %s\n\n", vehicle.year, vehicle.make, vehicle.model);
     printf("Task               Mileage            Cost                  Date\n");
     printf("----------------------------------------------------------------\n");
 
