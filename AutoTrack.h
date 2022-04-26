@@ -1,4 +1,3 @@
-
 typedef struct {
     bool exists;
     char date[30];
@@ -49,3 +48,4 @@ int compare(const void *x_void, const void *y_void);
 void removeTask(int select);
 void completeMaintenance(int select);
 void maintenanceLog(int select);
+float returnCost();

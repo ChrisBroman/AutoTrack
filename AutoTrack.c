@@ -638,26 +638,6 @@ void completeMaintenance(int select) {
 
     vehicle = loadedVehicle[select];
 
-    for (int i = 0; i < 99; i++) {
-        if (vehicle.schedule[i].exists == true) {
-            numTasks++;
-        }
-    }
-
-    if (numTasks == 0) {
-        printf("\n\nNo tasks to complete.  Please add task from the vehicle options menu.\n\n");
-        return;
-    }
-
-    printf("Select which task has been completed: \n\n");
-
-    for (int i = 0; i < 99; i++) {
-        if (vehicle.schedule[i].exists == true) {
-            vehicle.schedule[i].task[strcspn(vehicle.schedule[i].task, "\n")] = 0;
-            printf("%i. %s\n", i, vehicle.schedule[i].task);
-        }
-    }
-    
     char date[12] = {0};                                            //get the date
     time_t rawtime = time(NULL);    
     if (rawtime == -1) {
@@ -673,58 +653,137 @@ void completeMaintenance(int select) {
     }
     strftime(date, 12, "%d/%m/%Y", ptm);
 
-    printf("\n>> ");
-    int selection;
-    bool parsedCorrect;
-    do {
-        char selectionBuffer[16];
-        fgets(selectionBuffer, 16, stdin);
-        parsedCorrect = parse_int(selectionBuffer, &selection);
-        if (parsedCorrect == false) {
-            printf("Invalid selection. Please select again: ");
+    for (int i = 0; i < 99; i++) {
+        if (vehicle.schedule[i].exists == true) {
+            numTasks++;
         }
-    } while (!parsedCorrect);
-    
-    
-    printf("Please enter the current odometer reading: ");
-    int mileage;
-    parsedCorrect = true;
-    do {
-        char mileageBuffer[16];
-        fgets(mileageBuffer, 16, stdin);
-        parsedCorrect = parse_int(mileageBuffer, &mileage);
-        if (parsedCorrect == false) {
-            printf("Please enter mileage in km: ");
-        }
-    } while (!parsedCorrect);
-    vehicle.mileage = mileage;
-    vehicle.schedule[selection].lastDone = mileage;
-    
-    printf("Cost of job: ");
-    float cost;
-    scanf("%f", &cost);    
-    
-    snprintf(vehicle.schedule[selection].lastDoneDate, sizeof(vehicle.schedule[selection].lastDoneDate), "%s", date);
+    }
 
-    vehicle.schedule[selection].nextDue = vehicle.schedule[selection].lastDone + vehicle.schedule[selection].interval;
-    vehicle.schedule[selection].dueIn = vehicle.schedule[selection].nextDue - vehicle.mileage;    
-    
-    vehicle.schedule[selection].task[strcspn(vehicle.schedule[selection].task, "\n")] = 0;
-    printf("\n\n%s completed on %s\n\n", vehicle.schedule[selection].task, date);
-    
-    for (int i = 0; i < 200; i++) {
-        if (vehicle.log[i].exists == true) {
-            continue;
-        } else {
-            vehicle.log[i].exists = true;
-            snprintf(vehicle.log[i].task, sizeof(vehicle.log[i].task), "%s", vehicle.schedule[selection].task); 
-            snprintf(vehicle.log[i].date, sizeof(vehicle.log[i].date), "%s", date);
-            vehicle.log[i].mileage = vehicle.mileage;
-            vehicle.log[i].cost = cost;
-            vehicle.totalCost = vehicle.totalCost + vehicle.log[i].cost;
+    int response;
+    printf("Is task part of the maintenance schedule?\n\n");
+    printf("1. Yes\n");
+    printf("2. No\n\n>> ");
+    bool parsed_correct = true;
+    do {
+        char buffer[4];
+        fgets(buffer, 4, stdin);
+        parsed_correct = parse_int(buffer, &response);
+        if (!parsed_correct) {
+            fprintf(stderr, "Error, not a valid option. Please try again.\n\n>> ");
+        }        
+    } while (!parsed_correct);
+    printf("\n");
+
+    switch (response) {
+        case 1:
+            if (numTasks == 0) {
+                printf("\n\nNo tasks to complete.  Please add task from the vehicle options menu.\n\n");
+                return;
+            }
+
+            printf("Select which task has been completed: \n\n");
+
+            for (int i = 0; i < 99; i++) {
+                if (vehicle.schedule[i].exists == true) {
+                    vehicle.schedule[i].task[strcspn(vehicle.schedule[i].task, "\n")] = 0;
+                    printf("%i. %s\n", i, vehicle.schedule[i].task);
+                }
+            }
+            
+            printf("\n>> ");
+            int selection;
+            bool parsedCorrect;
+            do {
+                char selectionBuffer[16];
+                fgets(selectionBuffer, 16, stdin);
+                parsedCorrect = parse_int(selectionBuffer, &selection);
+                if (parsedCorrect == false) {
+                    printf("Invalid selection. Please select again: ");
+                }
+            } while (!parsedCorrect);
+            
+            printf("\n");
+            printf("Please enter the current odometer reading: ");
+            int mileage;
+            parsedCorrect = true;
+            do {
+                char mileageBuffer[16];
+                fgets(mileageBuffer, 16, stdin);
+                parsedCorrect = parse_int(mileageBuffer, &mileage);
+                if (parsedCorrect == false) {
+                    printf("Please enter mileage in km: ");
+                }
+            } while (!parsedCorrect);
+            vehicle.mileage = mileage;
+            vehicle.schedule[selection].lastDone = mileage;
+            
+            printf("Cost of job: ");
+            float cost = returnCost();
+                           
+            snprintf(vehicle.schedule[selection].lastDoneDate, sizeof(vehicle.schedule[selection].lastDoneDate), "%s", date);
+
+            vehicle.schedule[selection].nextDue = vehicle.schedule[selection].lastDone + vehicle.schedule[selection].interval;
+            vehicle.schedule[selection].dueIn = vehicle.schedule[selection].nextDue - vehicle.mileage;    
+            
+            vehicle.schedule[selection].task[strcspn(vehicle.schedule[selection].task, "\n")] = 0;
+            printf("\n\n%s completed on %s\n\n", vehicle.schedule[selection].task, date);
+            
+            for (int i = 0; i < 200; i++) {
+                if (vehicle.log[i].exists == true) {
+                    continue;
+                } else {
+                    vehicle.log[i].exists = true;
+                    snprintf(vehicle.log[i].task, sizeof(vehicle.log[i].task), "%s", vehicle.schedule[selection].task); 
+                    snprintf(vehicle.log[i].date, sizeof(vehicle.log[i].date), "%s", date);
+                    vehicle.log[i].mileage = vehicle.mileage;
+                    vehicle.log[i].cost = cost;
+                    vehicle.totalCost = vehicle.totalCost + vehicle.log[i].cost;
+                    break;
+                }
+            }
             break;
-        }
-    }   
+        case 2:
+            printf("Please enter description of work done: ");
+            char workDone[64];
+            fgets(workDone, 64, stdin);
+
+            printf("Please enter the odometer reading: ");
+            bool parsed_correct = true;
+            do {
+                char buffer[20];
+                fgets(buffer, 20, stdin);
+                parsed_correct = parse_int(buffer, &mileage);
+                if (parsed_correct == false) {
+                    printf("Please enter the mileage in km: ");
+                } else if (mileage < vehicle.mileage) {
+                    printf("Error, mileage cannot be less than current mileage.\n");
+                    parsed_correct = false;
+                }                
+            } while (!parsed_correct);
+            vehicle.mileage = mileage;
+
+            printf("Please enter the cost of the job: ");
+            cost = returnCost();
+
+            for (int i = 0; i < 200; i++) {
+                if (vehicle.log[i].exists == true) {
+                    continue;
+                } else {
+                    vehicle.log[i].exists = true;
+                    snprintf(vehicle.log[i].task, sizeof(vehicle.log[i].task), "%s", workDone);
+                    snprintf(vehicle.log[i].date, sizeof(vehicle.log[i].date), "%s", date);
+                    vehicle.log[i].mileage = mileage;
+                    vehicle.log[i].cost = cost;
+                    vehicle.totalCost = vehicle.totalCost + vehicle.log[i].cost;
+                    break;
+                }
+            }
+            
+        default:
+            break;
+    }
+
+    printf("\n\n");
 
     loadedVehicle[select] = vehicle;
 
@@ -768,4 +827,27 @@ void maintenanceLog(int select) {
     if (outfile == NULL) exit(1);
     fwrite(loadedVehicle, sizeof(loadedVehicle), 1, outfile);
     fclose(outfile);
+}
+
+float returnCost() {
+    float cost;
+    char *endptr;
+    bool correct_float = true;
+    do {
+        correct_float = true;
+        char buffer[100];
+        double value;
+        if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+            fprintf(stderr, "Unexpected Error");
+            correct_float = false;
+        }
+        value = strtod(buffer, &endptr);
+        if ((*endptr == '\0') || (isspace(*endptr)) != 0) {
+            cost = value;
+        } else {
+            fprintf(stderr, "Invalid cost, please try again with format 0.00\n");
+            correct_float = false;
+        }
+    } while (!correct_float);
+    return cost;
 }
